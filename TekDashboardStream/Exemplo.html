@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="initial-scale=1.0" />
+  </head>
+  <body>
+    <p id="info"></p>
+  </body>
+
+  <script type="text/javascript">
+    const configConexao = %%REQUEST_BODY_JSON%%;
+
+    const indicador = 1271; // "GRÁFICO 2 SERIES_COPIA"; // Ainda não está funcionando pelo nome do indicador
+    const parametrosIndicador = {
+         "MesAnalise": "MES_ANTERIOR",
+         "AnoAnalise": "2019",
+         "DesenvolvedorUnico": 0
+        }
+    const DW = -4;
+    const minutosExpiracaoDW = 10;
+    const filtroDW = [
+      {"codigo": 1, "descricao": "Data Inicial", "tipo": 2, "resultado": "INICIO_ANO_ANTERIOR"},
+      {"codigo": 2, "descricao": "Data Final",   "tipo": 2, "resultado": "HOJE"}
+    ];
+
+    let chaveAutenticacao;
+    let dados;
+    function Autenticar() {
+      const opcoes = {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(configConexao),
+        redirect: "follow"
+      };
+
+      fetch(configConexao.Host + "/auth", opcoes)
+        .then((response) => response.text())
+        .then((result) => {
+          chaveAutenticacao = JSON.parse(result);
+          //LerDadosIndicador();
+          LerDadosDW();
+        })
+        .catch((error) => console.error(error));
+    };
+    function LerDadosIndicador() {
+      const opcoes = {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + chaveAutenticacao.token_Acesso,
+          "Content-Type": "application/json",
+          "cache-control": "no-cache"
+          },
+        body: parametrosIndicador,
+        redirect: "follow"
+      };
+      fetch(configConexao.Host + "/TSMCadGR_Indicadores.ValorIndicador?Indicador=" + indicador, opcoes)
+        .then((response) => response.text())
+        .then((result) => {
+          dados = result;
+          p = document.getElementById('info');
+          p.innerHTML = JSON.stringify(result);
+        })
+        .catch((error) => console.error(error));
+    }
+
+    function LerDadosDW() {
+      const opcoes = {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + chaveAutenticacao.token_Acesso,
+          "Content-Type": "application/json",
+          "cache-control": "no-cache"
+          },
+        body: JSON.stringify(filtroDW),
+        redirect: "follow"
+      };
+      fetch(configConexao.Host + "/TSMCadDW_Temas.DataWarehouse?CodigoTemaDW=" + DW + "&NovaDescricao=Teste Dashboad&MinutosExpiracao=" + minutosExpiracaoDW, opcoes)
+        .then((response) => response.text())
+        .then((result) => {
+          dados = result;
+          p = document.getElementById('info');
+          p.innerHTML = JSON.stringify(result);
+        })
+        .catch((error) => console.error(error));
+    }
+
+    Autenticar();
+  </script>
+</html>

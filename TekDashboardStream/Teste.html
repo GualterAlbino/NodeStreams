@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cotação de Moedas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .container {
+        text-align: center;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .title {
+        font-size: 2em;
+        margin-bottom: 20px;
+      }
+      canvas {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="title">Cotação de Moedas</h1>
+      <canvas id="currencyChart"></canvas>
+    </div>
+
+    <script>
+      async function fetchCurrency() {
+        const url = 'https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL';
+
+        try {
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error('Erro ao obter os dados de cotação.');
+          }
+          const data = await response.json();
+          const labels = Object.keys(data).map(key => data[key].code);
+          const values = Object.keys(data).map(key => parseFloat(data[key].bid));
+
+          const ctx = document.getElementById('currencyChart').getContext('2d');
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: 'Cotação em BRL',
+                  data: values,
+                  backgroundColor: ['#007bff', '#28a745', '#ffc107']
+                }
+              ]
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          });
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      fetchCurrency();
+    </script>
+  </body>
+</html>
